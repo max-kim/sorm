@@ -9,6 +9,7 @@ from sorm.errors import QueryError
 
 class Query:
     def __init__(self, connection, table_obj: Base):
+        Base.check_subclass(table_obj)
         self._connection = connection
         self._source_obj = table_obj
         self._source_tab = table_obj.table_name()

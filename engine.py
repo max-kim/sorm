@@ -26,8 +26,7 @@ class Connection:
         if not args:
             raise ValueError('There is no table to create!')
         for table_obj in args:
-            if not issubclass(table_obj, Base):
-                raise ValueError('{} does not seem like subclass of Base!'.format(table_obj.__name__))
+            Base.check_subclass(table_obj)
             table_obj.check_structure()
             self.execute(Query._get_table_creation_query_text(table_obj))
 
@@ -47,14 +46,8 @@ class Connection:
         else:
             QueryDelete.delete(self, table_obj)
 
-    def query(self, table_obj: Base, fields: str=''):
-        if not issubclass(table_obj, Base):
-            raise ValueError('{} does not seem like subclass of Base!'.format(table_obj.__name__))
-        if fields:
-            fields = table_obj.parse_column_names(fields)
-        else:
-            fields = table_obj.get_column_names()
-        return QuerySelect(self, table_obj, fields)
+    def query(self, table_obj: Base):
+        return QuerySelect(self, table_obj, table_obj.get_column_names())
 
     def echo(self, text, params):
         if self.call_echo:

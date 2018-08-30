@@ -112,3 +112,8 @@ class Base:
             if getattr(cls, key).col_name != key:
                 raise StructureError('({}) - the incorrect column name was defined in the column type.'.
                                      format(getattr(cls, key).col_name))
+
+    @classmethod
+    def check_subclass(cls, checked_obj):
+         if not issubclass(checked_obj, cls):
+            raise ValueError('{} does not seem like subclass of Base!'.format(checked_obj.__name__))
