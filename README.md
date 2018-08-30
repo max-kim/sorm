@@ -9,6 +9,7 @@ You can install 'sORM' with these commands:
     $ mkdir <installation dir>
     $ cd /<installation dir>
     $ git clone git://github.com/max-kim/sorm.git
+    $ cd sorm
 ```
 
 ## Requirements

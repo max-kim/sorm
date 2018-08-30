@@ -5,6 +5,9 @@ from sorm.types import NullType, IntType
 
 
 class Relationship:
+    """Set a relation with object attribute and foreign key target table.
+    Defined attribute will contain DB object instance consistent with foreign key.
+    """
     def __init__(self, self_attr: NullType):
         if not self_attr.foreign_key:
             raise ValueError('The attribute ({}) does not contain a foreign key.'.format(self_attr.col_name))
@@ -13,6 +16,7 @@ class Relationship:
 
 
 class Base:
+    """Base table object prototype. All the custom DB table objects must be extended from this one."""
     __tablename__ = ''
 
     id = IntType(__tablename__, 'id', primary_key=True)

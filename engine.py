@@ -7,10 +7,16 @@ from sorm.orm import Query, QuerySelect, QueryUpdate, QueryDelete
 
 
 def create_connection(db_path=':memory:', echo=False):
+    """Creates the connection to DB.
+    :param db_path: :class:`str` - the path to DB file
+    :param echo: :class:`bool` - print the query statements to console
+    :return :class:`Connection`: the connection object
+    """
     return Connection(db_path, echo)
 
 
 class Connection:
+    """sORM API object. Keeps connection to DB and routes the queries."""
     def __init__(self, db_path, echo):
         self.connection = connect(db_path, isolation_level=None)
         self.call_echo = echo
@@ -61,6 +67,11 @@ class Connection:
 
 
 class Cursor:
+    """Query context manager.
+    The recommend usage is:
+    >>> with Cursor(connection) as cursor:
+    >>>     result = cursor.execute(query_text, params)
+    """
     def __init__(self, connection: Connection):
         self.connection = connection
         self.cursor = connection.cursor()
