@@ -18,7 +18,7 @@ You can install 'sORM' with these commands:
 
 ## Usage
 
-##### How to make the connection and create the tables:
+#### How to make the connection and create the tables:
 ```python
     from sorm import create_connection
     from sorm import IntType, FloatType, StrType, BytesType, ForeignKey, Base, Relationship
@@ -53,7 +53,7 @@ You can install 'sORM' with these commands:
 
 Use 'echo=True' as 'create_connection' parameter to show every sql queries.
 
-##### How to insert data:
+#### How to insert data:
 ```python
     group = Group(id=None, group_name='Admins')
     connection.add(group)
@@ -64,7 +64,7 @@ Use 'echo=True' as 'create_connection' parameter to show every sql queries.
 ```
 The count for 'id' will be defined automatically.
 
-##### How to select data:
+#### How to select data:
 ```python
     groups = connection.query(Group).order_by(Group.id).all()
 ```
@@ -80,7 +80,7 @@ When you call 'first()' method, you get an object or 'None' if the query does no
     admin_group = connection.query(Group).where((Group.group_name, '=', 'Admins')).first()
 ```
 
-##### How to make an update:
+#### How to make an update:
 ```python
     if admin_group:
         user = connection.update(User).where((User.user_name, '=', 'Alex'),
@@ -89,7 +89,7 @@ When you call 'first()' method, you get an object or 'None' if the query does no
 ```
 Update query returns tuple of objects any time or empty tuple if conditions does not fit anything.
 
-##### Deletion the data:
+#### Deletion the data:
 ```python
     connection.delete(Group).where((Group.id, '>=', 3))
 ```
