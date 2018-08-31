@@ -16,7 +16,8 @@ class Relationship:
 
 
 class Base:
-    """Base table object prototype. All the custom DB table objects must be extended from this one."""
+    """Superclass for all custom table objects.
+    The all custom table objects must be extended from this one."""
     __tablename__ = ''
 
     id = IntType(__tablename__, 'id', primary_key=True)
@@ -39,6 +40,10 @@ class Base:
     @classmethod
     def table_name(cls) -> str:
         return cls.__tablename__
+
+    @classmethod
+    def create(cls, connection) -> None:
+        connection.create_table(cls)
 
     @classmethod
     def get_field_names(cls) -> list:
@@ -83,10 +88,6 @@ class Base:
         return tuple((col, '=', getattr(col.foreign_key.bound_class, col.foreign_key.bound_attr)) for col in cls.get_columns() if col.foreign_key and col.foreign_key.bound_class == table_obj)
 
     @classmethod
-    def create(cls, connection) -> None:
-        connection.create_table(cls)
-
-    @classmethod
     def check_structure(cls, *args) -> None:
         if len(args):
             cls.check_names(args)
@@ -119,5 +120,5 @@ class Base:
 
     @classmethod
     def check_subclass(cls, checked_obj):
-         if not issubclass(checked_obj, cls):
+        if not issubclass(checked_obj, cls):
             raise ValueError('{} does not seem like subclass of Base!'.format(checked_obj.__name__))

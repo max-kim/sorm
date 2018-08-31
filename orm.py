@@ -8,6 +8,10 @@ from sorm.errors import QueryError
 
 
 class Query:
+    """
+    Superclass for: :class: 'QuerySelect', :class: 'QueryUpdate' and :class: 'QueryDelete'.
+    Implements all common functions with SQL queries.
+    """
     def __init__(self, connection, table_obj: Base):
         Base.check_subclass(table_obj)
         self._connection = connection
@@ -41,7 +45,7 @@ class Query:
         sect_from = '\n'.join(flat([[self._cast_table(self._source_obj)], self._joined_tabs.values()]))
         sect_where = 'WHERE {}'.format('\nAND '.join([e for e, _ in self._filters])) if len(self._filters) else ''
         sect_order = 'ORDER BY {}'.format(',\n'.join(self._ordering)) if len(self._ordering) else ''
-        parameters = tuple(p for _, p in self._filters)  # tuple(flat([p for _, p in self._filters]))
+        parameters = tuple(p for _, p in self._filters)
         return 'SELECT\n{}\nFROM {}\n{}\n{}'.format(sect_fields, sect_from, sect_where, sect_order).strip(), parameters
 
     def _get_update_query_text(self):
@@ -124,6 +128,7 @@ class Query:
 
 
 class QuerySelect(Query):
+    """Implements the specific select query features."""
     def __init__(self, connection, table_obj: Base, required_fields: list):
         super(QuerySelect, self).__init__(connection, table_obj)
         self._tab_structure = OrderedDict({table_obj.table_name():
@@ -153,7 +158,13 @@ class QuerySelect(Query):
         return self._fetch()
 
     def first(self, limit=1):
-        return self._fetch(limit)
+        result = self._fetch(limit)
+        if len(result):
+            if limit == 1:
+                return result[0]
+        else:
+            return None
+        return result
 
     def _cast_table(self, table_obj: Base) -> str:
         return '{} AS {}'.format(table_obj.table_name(), self._get_tab_synonym(table_obj.table_name()))
@@ -184,6 +195,7 @@ class QuerySelect(Query):
 
 
 class QueryUpdate(Query):
+    """Implements the specific update query feature."""
     def value(self, **kwargs):
         self._source_obj.check_names(kwargs.keys())
         tmp = list(zip(*[(k, v) for k, v in kwargs.items()]))
@@ -193,6 +205,8 @@ class QueryUpdate(Query):
 
 
 class QueryDelete(Query):
+    """Implements the specific delete query features.
+    Allows to delete objects both directly and using a filter."""
     def where(self, *filter_list):
         super(QueryDelete, self).where(*filter_list)
         self._delete()
