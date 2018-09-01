@@ -55,14 +55,14 @@ Use 'echo=True' as 'create_connection' parameter to show every sql queries.
 
 #### How to insert data:
 ```python
-    group = Group(id=None, group_name='Admins')
+    group = Group(group_name='Admins')
     connection.add(group)
-    connection.add(Group(**{'id': None, 'group_name': 'Users'}))
+    connection.add(Group(**{'group_name': 'Users'}))
 
-    connection.add(User(**{'id': None, 'user_name': 'Max', 'group_id': None}))
-    connection.add(User(**{'id': None, 'user_name': 'Alex', 'group_id': None}))
+    connection.add(User(**{'user_name': 'Max', 'group_id': None}))
+    connection.add(User(**{'user_name': 'Alex', 'group_id': None}))
 ```
-The count for 'id' will be defined automatically.
+The field 'id' will be added and filled automatically.
 
 #### How to select data:
 ```python
