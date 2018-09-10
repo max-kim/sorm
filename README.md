@@ -12,6 +12,7 @@ You can install 'sORM' with these commands:
 ## Requirements
 
 - Python 3.6 (or over)
+- SQLite 3
 
 ## Usage
 
