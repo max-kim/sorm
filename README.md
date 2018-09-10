@@ -6,10 +6,7 @@ Allows to use Python objects instead of SQLite statements.
 
 You can install 'sORM' with these commands:
 ```bash
-    $ mkdir <installation dir>
-    $ cd /<installation dir>
-    $ git clone git://github.com/max-kim/sorm.git
-    $ cd sorm
+    $ pip install sorm
 ```
 
 ## Requirements
