@@ -7,5 +7,5 @@
 *__pycache__/*.*
 *.idea/*.*
 *.idea/*/*.*
-test*.*
-setup.py
+*/test*.*
+*/setup.py
