@@ -4,7 +4,8 @@ from sorm.errors import ColumnTypeError
 
 
 class ForeignKey:
-    """Allows to implement one to many relation.
+    """
+    Allows to implement one to many relation.
     Performs the auto left join within select query.
     """
     def __init__(self, bound_class, bound_attr: str):
@@ -19,7 +20,9 @@ class ForeignKey:
 
 
 class NullType:
-    """Superclass for data types. Implements the common functionality."""
+    """
+    Superclass for data types. Implements the common functionality.
+    """
     _prototype = 'NULL'
     _supported_operators = ['is', 'not is']
     _allow_pk = False

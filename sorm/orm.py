@@ -62,27 +62,32 @@ class Query:
         return 'DELETE FROM {}\n{}'.format(sect_from, sect_where).strip(), parameters
 
     def where(self, *filter_list):
+        """Sets filter to the query."""
         self._filters.extend([('\n{} {} ?'.format(self._cast_column(column),
                                                   cmp_oper if column.check_comparison_operator(cmp_oper) else None),
                               column.cast_value(value)) for column, cmp_oper, value in filter_list])
         return self
 
     def _cast_table(self, table_obj: Base) -> str:
+        """Adduces the table object to the representation."""
         return table_obj.table_name()
 
     def _cast_column(self, column: NullType):
+        """Adduces the column to the representation."""
         if not self._tab_structure.get(column.tab_name):
             raise QueryError('({}) - the table is missing from query sources.'.format(column.tab_name))
         return column.col_name
 
     def _to_field_list(self, table_obj: Base, fields: list=None):
+        """Returns a list of the table column representations."""
         if not fields:
             fields = table_obj.get_column_names()
         return [self._cast_column(column) for column in table_obj.get_columns_by_names(fields)]
 
     def _fetch(self, limit: int=None):
         text, params = self._get_select_query_text()
-        self._parse_query_result(self._connection.execute('{}\nLIMIT {}'.format(text, limit) if limit else text, params))
+        self._tab_results = self._parse_query_result(self._connection.execute('{}\nLIMIT {}'.format(text, limit)
+                                                                              if limit else text, params))
         return self._get_result_as_object()
 
     def _update(self):
@@ -93,19 +98,23 @@ class Query:
         text, params = self._get_delete_query_text()
         self._connection.execute(text, params)
 
-    def _parse_query_result(self, results: tuple) -> None:
-        self._tab_results = []
+    def _parse_query_result(self, results: tuple) -> list:
+        """Returns a list of the parsed results of the query."""
+        tab_results = []
         for result in results:
             res_iter = iter(result)
-            self._tab_results.append(dict([(tab_name, dict([(key, next(res_iter)) for key in tab_fields[1]]))
-                                           for tab_name, tab_fields in self._tab_structure.items()]))
+            tab_results.append(dict([(tab_name, dict([(key, next(res_iter)) for key in tab_fields[1]]))
+                                     for tab_name, tab_fields in self._tab_structure.items()]))
+        return tab_results
 
     def _get_result_as_object(self) -> tuple:
+        """Transforms the result to object representation."""
         return tuple([self._handle_object_relations(
             self._get_object_from_dict(self._source_tab, self._objects_dict, tab_row.pop(self._source_tab)),
             tab_row, self._objects_dict) for tab_row in self._tab_results if len(tab_row)])
 
     def _handle_object_relations(self, source_obj, tab_row, objects_dict):
+        """Adds the relation objects to the source object."""
         if len(tab_row):
             relations = self._source_obj.get_relations()
             for key, value in relations.items():
@@ -115,9 +124,11 @@ class Query:
         return source_obj
 
     def _set_joint_object(self, source_obj, attr_name, table_name, source_dict, objects_dict):
+        """Sets the relation objects as an attribute to the source object."""
         setattr(source_obj, attr_name, self._get_object_from_dict(table_name, objects_dict, source_dict))
 
     def _get_object_from_dict(self, table_name, objects_dict, source_dict):
+        """Handles the query result cash."""
         class_obj = self._tab_structure.get(table_name)[0]
         if objects_dict.get(dict_to_tuple(source_dict)):
             source_obj = objects_dict.get(dict_to_tuple(source_dict))
@@ -167,28 +178,34 @@ class QuerySelect(Query):
         return result
 
     def _cast_table(self, table_obj: Base) -> str:
+        """Adduces the table object to the representation."""
         return '{} AS {}'.format(table_obj.table_name(), self._get_tab_synonym(table_obj.table_name()))
 
     def _cast_column(self, column: NullType):
+        """Adduces the column to the representation."""
         if not self._tab_structure.get(column.tab_name):
             raise QueryError('({}) - the table is missing from query sources.'.format(column.tab_name))
         return '{}.{}'.format(self._get_tab_synonym(column.tab_name), column.col_name)
 
     def _get_tab_synonym_index(self, tab_name) -> int:
+        """Returns unique index for the table."""
         return tuple(self._tab_structure).index(tab_name) \
             if tab_name in self._tab_structure.keys() \
             else (len(self._tab_structure) + 1)
 
     def _get_tab_synonym(self, tab_name: str) -> str:
+        """Returns unique synonym for the table."""
         return '{}_{}'.format(tab_name, self._get_tab_synonym_index(tab_name))
 
     def _get_formatted_join_list(self, table_obj: Base, *join_expr):
+        """Returns a list of a string representation with the joined tables."""
         if not len(join_expr):
             raise QueryError('A full join query is forbidden. Check the query.')
         return [(table_obj, 'LEFT JOIN {} on {}'.format(self._cast_table(table_obj),
                                                         ' and '.join(self._join_clause_list(*join_expr))))]
 
     def _join_clause_list(self, *join_expr):
+        """Returns a list of a string representation with the joint conditions."""
         return ['{} {} {}'.format(self._cast_column(col_1), cmp_oper, self._cast_column(col_2))
                 for col_1, cmp_oper, col_2 in join_expr
                 if col_1.check_comparison_operator(cmp_oper) and col_1.check_comparison_operator(cmp_oper)]
@@ -205,8 +222,10 @@ class QueryUpdate(Query):
 
 
 class QueryDelete(Query):
-    """Implements the specific delete query features.
-    Allows to delete objects both directly and using a filter."""
+    """
+    Implements the specific delete query features.
+    Allows to delete objects both directly and using a filter.
+    """
     def where(self, *filter_list):
         super(QueryDelete, self).where(*filter_list)
         self._delete()

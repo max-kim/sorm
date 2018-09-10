@@ -5,7 +5,8 @@ from sorm.types import NullType, IntType
 
 
 class Relationship:
-    """Set a relation with object attribute and foreign key target table.
+    """
+    Set a relation with object attribute and foreign key target table.
     Defined attribute will contain DB object instance consistent with foreign key.
     """
     def __init__(self, self_attr: NullType):
@@ -16,8 +17,10 @@ class Relationship:
 
 
 class Base:
-    """Superclass for all custom table objects.
-    The all custom table objects must be extended from this one."""
+    """
+    Superclass for all custom table objects.
+    The all custom table objects must be extended from this one.
+    """
     __tablename__ = ''
 
     id = IntType(__tablename__, 'id', primary_key=True)
@@ -35,6 +38,7 @@ class Base:
                                               if k in set(self.get_column_names())]))
 
     def get_column_values(self, column_names):
+        """Returns all the values of the object columns."""
         return tuple([getattr(self, key) for key in column_names])
 
     @classmethod
@@ -47,29 +51,35 @@ class Base:
 
     @classmethod
     def get_field_names(cls) -> list:
+        """Returns all the class field names without service attributes."""
         return [k for k in cls.__dict__.keys() if not k.startswith('__')]
 
     @classmethod
     def get_column_names(cls) -> list:
+        """Returns all the class field names without service attributes."""
         return [k for k, v in cls.__dict__.items() if isinstance(v, NullType)]
 
     @classmethod
     def parse_column_names(cls, columns_str: str) -> list:
+        """Parse the column names from sting and check them. Returns a list of the column names."""
         column_names = [v.strip() for v in columns_str.split(',')]
         return cls.check_names(*column_names)
 
     @classmethod
     def get_columns_by_names(cls, columns: (list, str)) -> list:
+        """Returns the object columns by names."""
         if isinstance(columns, str):
             columns = cls.parse_column_names(columns)
         return [cls.__dict__.get(col_name) for col_name in columns]
 
     @classmethod
     def get_columns(cls) -> list:
+        """Returns all the object columns."""
         return [v for v in cls.__dict__.values() if isinstance(v, NullType)]
 
     @classmethod
     def get_primary_keys(cls) -> list:
+        """Returns a list of primary key's column names."""
         primary_key_list = [col.col_name for col in cls.get_columns() if col.primary_key]
         if any(col.autoincrement() for col in cls.get_columns()) and len(primary_key_list) > 1:
             raise StructureError('SQLite does not support autoincrement with multiple primary key. Set primary key column not nullable.')
@@ -77,18 +87,23 @@ class Base:
 
     @classmethod
     def get_foreign_keys(cls) -> dict:
+        """Returns a dict of column and column's foreign key."""
         return dict([(col, col.foreign_key) for col in cls.get_columns() if col.foreign_key])
 
     @classmethod
     def get_relations(cls) -> dict:
+        """Returns a dict of relationships."""
         return dict([(k, v.bound_attr.tab_name) for k, v in cls.__dict__.items() if isinstance(v, Relationship)])
 
     @classmethod
     def get_foreign_relation(cls, table_obj):
-        return tuple((col, '=', getattr(col.foreign_key.bound_class, col.foreign_key.bound_attr)) for col in cls.get_columns() if col.foreign_key and col.foreign_key.bound_class == table_obj)
+        """Returns a tuple of foreign key relations."""
+        return tuple((col, '=', getattr(col.foreign_key.bound_class, col.foreign_key.bound_attr))
+                     for col in cls.get_columns() if col.foreign_key and col.foreign_key.bound_class == table_obj)
 
     @classmethod
     def check_structure(cls, *args) -> None:
+        """Checks the table object structure."""
         if len(args):
             cls.check_names(args)
         cls.check_types()
@@ -97,6 +112,7 @@ class Base:
 
     @classmethod
     def check_names(cls, name_list: list) -> list:
+        """Checks the column names in the table object."""
         not_found_keys = [key for key in name_list if key not in cls.get_column_names()]
         not_found_len = len(not_found_keys)
         if not_found_len:
@@ -110,6 +126,7 @@ class Base:
 
     @classmethod
     def check_types(cls) -> None:
+        """Checks the column names in the column type objects."""
         for key in cls.get_column_names():
             if getattr(cls, key).tab_name != cls.table_name():
                 raise StructureError('({}) - the incorrect table name was defined in the column type.'.
@@ -119,6 +136,7 @@ class Base:
                                      format(getattr(cls, key).col_name))
 
     @classmethod
-    def check_subclass(cls, checked_obj):
+    def check_subclass(cls, checked_obj) -> None:
+        """Checks the object is a subclass of a base table object."""
         if not issubclass(checked_obj, cls):
             raise ValueError('{} does not seem like subclass of Base!'.format(checked_obj.__name__))

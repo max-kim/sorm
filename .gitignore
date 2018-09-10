@@ -1,2 +1,11 @@
+*build/*.*
+*build/*/*.*
+*build/*/*/*.*
+*dist/*.*
+*sorm.egg-info/*
+*sorm.egg-info/*.*
 *__pycache__/*.*
+*.idea/*.*
+*.idea/*/*.*
 test*.*
+setup.py

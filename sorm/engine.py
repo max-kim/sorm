@@ -7,7 +7,8 @@ from sorm.orm import Query, QuerySelect, QueryUpdate, QueryDelete
 
 
 def create_connection(db_path=':memory:', echo=False):
-    """Creates the connection to DB.
+    """
+    Creates the connection to DB.
     :param db_path: :class:`str` - the path to DB file
     :param echo: :class:`bool` - print the query statements to console
     :return :class:`Connection`: the connection object
@@ -26,9 +27,11 @@ class Connection:
         self.connection.close()
 
     def cursor(self):
+        """Returns a cursor for the connection."""
         return self.connection.cursor()
 
     def create_table(self, *args: List[Base]):
+        """Creates a table in DB."""
         if not args:
             raise ValueError('There is no table to create!')
         for table_obj in args:
@@ -37,6 +40,7 @@ class Connection:
             self.execute(Query._get_table_creation_query_text(table_obj))
 
     def add(self, *args):
+        """Inserts objects to DB."""
         if not args:
             raise ValueError('There is no object to add!')
         for inst in args:
@@ -44,22 +48,29 @@ class Connection:
             self.execute(text, params)
 
     def update(self, table_obj):
+        """Returns the QueryUpdate object. Which allows to update DB data."""
         return QueryUpdate(self, table_obj)
 
     def delete(self, table_obj):
-        if type(table_obj) is type:
+        """Returns the QueryDelete object. Which allows to delete DB data."""
+        if issubclass(table_obj, Base):
             return QueryDelete(self, table_obj)
-        else:
+        elif isinstance(table_obj, Base):
             QueryDelete.delete(self, table_obj)
+        else:
+            raise TypeError('{} - it does not seems like a subclass or an instance of the Base class.')
 
     def query(self, table_obj: Base):
+        """Returns the QuerySelect object. Which allows to select data from DB."""
         return QuerySelect(self, table_obj, table_obj.get_column_names())
 
     def echo(self, text, params):
+        """Allows to print the query texts."""
         if self.call_echo:
             print('{}\n{}'.format(text, params if params else '').strip())
 
     def execute(self, query_text: str, params: tuple=tuple()) -> tuple:
+        """Executes the query texts."""
         with Cursor(self) as cursor:
             result = cursor.execute(query_text, params)
             self.echo(query_text, params)
@@ -67,7 +78,8 @@ class Connection:
 
 
 class Cursor:
-    """Query context manager.
+    """
+    Query context manager.
     The recommend usage is:
     >>> with Cursor(connection) as cursor:
     >>>     result = cursor.execute(query_text, params)
